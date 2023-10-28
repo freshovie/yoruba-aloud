@@ -864,9 +864,7 @@ hr {
     animation: spin 2s linear infinite;
 }
 
-.wrapper {
-    display: none;
-}
+
 
 .ch-btn {
     background: #2D85DE;
