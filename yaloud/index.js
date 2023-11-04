@@ -95,7 +95,7 @@ function logIn(event) {
   if (getEmail === "" || getPassword === "") {
     Swal.fire({
       icon: "info",
-      text: "All Fields are Required",
+      text: `${result.message}`,
       confirmButtonColor: "#2D85DE",
     });
     getSpin.style.display = "none";
@@ -400,7 +400,7 @@ function getCategoryList(){
             result.map((item) => {
                 data += `
                 <div class="search-card">
-                    <img src=${item.image} alt="image">
+                   <a href = "details.html?name=${item.name}&id=${item.id}"> <img src=${item.image} alt="image"></a>
                     <p class="mt-3">${item.name}</p>
 
                     <div class="text-right">
@@ -543,7 +543,6 @@ function updateCategory(event){
 
 function delCat(catId){
   
-
     const getToken = localStorage.getItem("admin");
     const myToken = JSON.parse(getToken);
     const token = myToken.token;
@@ -584,3 +583,427 @@ function delCat(catId){
 
 }
 
+function gotoLoginPage(event) {
+  event.preventDefault();   
+  location.href = "index.html";
+}
+
+function showCategoryName(){
+  const params = new URLSearchParams(window.location.search);
+  const showCatName = params.get('name');
+  const myNameValue = document.querySelector(".det");
+  myNameValue.innerHTML = showCatName;
+}
+
+function subCategory(event) {
+  event.preventDefault();
+
+  const params2 = new URLSearchParams(window.location.search);
+  const showCatId = params2.get('id');
+
+  const getSpin = document.querySelector(".spin");
+  getSpin.style.display = "inline-block";
+
+  const subCat = document.getElementById("subCatName").value;
+  const subImg = document.getElementById("subCatImg").files[0];
+
+  if(subCat === ""){
+    Swal.fire({
+      icon: 'info',
+      text: 'All Fields Required!',
+      confirmButtonColor: '#2D85DE'
+  })
+   getSpin.style.display = "none";
+  }
+
+  else{
+    const getToken = localStorage.getItem("admin");
+    const myToken = JSON.parse(getToken);
+    const token = myToken.token;
+
+    const dashHeader = new Headers();
+    dashHeader.append("Authorization",`Bearer ${token}`);
+
+    const catData = new FormData();
+    catData.append("name",subCat);
+    catData.append("image",subImg);
+    catData.append("category_id",showCatId)
+
+    const dashMethod = {
+      method: 'POST',
+      headers: dashHeader,
+      body: catData
+    }
+
+    const url = "https://pluralcodesandbox.com/yorubalearning/api/admin/create_subcategory";
+
+    fetch(url,dashMethod)
+
+    .then(response => response.json())
+      
+    .then(result => {
+      console.log(result)
+
+      if (result.status === "success") {
+        Swal.fire({
+            icon: 'success',
+            text: `${result.message}`,
+            confirmButtonColor: '#2D85DE'
+        })
+        setTimeout(() => {
+            location.reload();
+        }, 3000)
+    }
+    else {
+        Swal.fire({
+            icon: 'info',
+            text: `${result.message}`,
+            confirmButtonColor: '#2D85DE'
+        })
+        getSpin.style.display = "none";
+    }
+
+    })
+    .catch(error => console.log('error', error));
+
+  }
+
+
+}
+
+function showCategoryDetails(){
+  
+  const params3 = new URLSearchParams(window.location.search);
+  const showCatId = params3.get('id');
+
+  const showRowItem = document.querySelector(".row");
+
+  const getToken = localStorage.getItem("admin");
+  const myToken = JSON.parse(getToken);
+  const token = myToken.token;
+
+  const dashHeader = new Headers();
+  dashHeader.append("Authorization",`Bearer ${token}`);
+
+  const delMethod = {
+    method: 'GET',
+    headers: dashHeader,
+  }
+
+  let data = [];
+
+  const url = `https://pluralcodesandbox.com/yorubalearning/api/admin/category_details/${showCatId}`;
+
+  fetch (url,delMethod)
+  .then(response => response.json())
+  .then(result => {
+    console.log(result)
+    if (result.length === 0){
+      showRowItem.innerHTML = "No subcategory found"
+    }
+
+    else{
+      result.map((item) => {
+        data += `
+          <div class="col-sm-12 col-md-12 col-lg-4">
+
+            <div class="search-card">
+            <img src=${item.image} alt="image">
+            <p class="mt-3">${item.name}</p>
+
+            <div class="text-right">
+            <button class="update-button" onclick="upSubCategory(${item.id})">update</button>
+
+            </div>
+            </div>
+          </div>
+
+        `
+        showRowItem.innerHTML = data;
+      })
+    }
+
+  })
+  .catch(error => console.log('error', error));
+}
+
+let subGlobalId
+
+function upSubCategory(subCatId){
+  subGlobalId = subCatId
+ 
+
+  const showModal = document.getElementById("my-modal-mode");
+  showModal.style.display ="block";
+
+  
+
+  const getSubCatUpName = document.getElementById("updateSubName");
+
+  const getToken = localStorage.getItem("admin");
+  const myToken = JSON.parse(getToken);
+  const token = myToken.token;
+
+  const dashHeader = new Headers();
+  dashHeader.append("Authorization",`Bearer ${token}`);
+
+  const dashMethod = {
+    method: 'GET',
+    headers: dashHeader,
+  }
+
+  const url = `https://pluralcodesandbox.com/yorubalearning/api/admin/get_details?subcategory_id=${subCatId}`;
+
+  fetch (url,dashMethod)
+
+  .then(response => response.json())
+  .then(result => {
+    console.log(result)
+
+    getSubCatUpName.setAttribute("value", `${result.name}`);
+
+
+  })
+  .catch(error => console.log('error', error));
+
+}
+
+function closeModalMode(){
+  const showModal = document.getElementById("my-modal-mode");
+  showModal.style.display = "none"
+}
+
+
+function updateSubCategory(event){
+  event.preventDefault();
+
+  const getSpin = document.querySelector(".spin2");
+  getSpin.style.display = "inline-block";
+
+  const subCatName = document.getElementById("updateSubName").value;
+  const subCatImg = document.getElementById("updateSubImage").files[0];
+
+  if(subCatName === ""){
+    Swal.fire({
+        icon: "info",
+        text: "All Fields are Required!",
+        confirmButtonColor: "#2D85DE"
+    })
+    getSpin.style.display = "none";
+  }
+
+  else{
+    const getToken = localStorage.getItem("admin");
+    const myToken = JSON.parse(getToken);
+    const token = myToken.token;
+
+    const dashHeader = new Headers();
+    dashHeader.append("Authorization",`Bearer ${token}`);
+
+    const subCatData = new FormData();
+    subCatData.append("name",subCatName);
+    subCatData.append("image",subCatImg);
+    subCatData.append("subcategory_id", subGlobalId)
+
+    const dashMethod = {
+      method: 'POST',
+      headers: dashHeader,
+      body: subCatData
+    }
+
+    const url = "https://pluralcodesandbox.com/yorubalearning/api/admin/update_subcategory";
+
+    fetch(url,dashMethod)
+    .then(response => response.json())
+    .then(result => {
+      console.log(result)
+
+      if(result.status === "success"){
+
+        Swal.fire({
+            icon: 'success',
+            text: `${result.message}`,
+            confirmButtonColor: '#2D85DE'
+        })
+        setTimeout(() => {
+            location.reload();
+        }, 3000)
+      }
+
+    else{
+        Swal.fire({
+            icon: 'info',
+            text: `${result.message}`,
+            confirmButtonColor: '#2D85DE'
+        })
+        getSpin.style.display = "none";
+
+    }
+    
+    })
+    .catch(error => console.log('error', error));
+  }
+}
+
+
+function upDateAdmin(event) {
+  event.preventDefault();
+
+  const getSpin = document.querySelector(".spin");
+  getSpin.style.display = "inline-block";
+
+  const getUpDateName = document.getElementById("updateName").value;
+  const getUpDateEmail = document.getElementById("updateEmail").value;
+
+  if(getUpDateName === "" || getUpDateEmail === ""){
+
+    Swal.fire({
+      icon: "info",
+      text: "All Fields are Required!",
+      confirmButtonColor: "#2D85DE"
+    })
+    getSpin.style.display = "none";
+  }
+
+  else{
+
+    const getToken = localStorage.getItem("admin");
+    const myToken = JSON.parse(getToken);
+    const token = myToken.token;
+
+    const dashHeader = new Headers();
+    dashHeader.append("Authorization",`Bearer ${token}`);
+
+    const signData = new FormData();
+    signData.append("name", getUpDateName);
+    signData.append("email", getUpDateEmail);
+
+    const signMethod = {
+      method: "POST",
+      headers: dashHeader,
+      body: signData,
+    }
+
+    const url = "https://pluralcodesandbox.com/yorubalearning/api/admin/admin_update_profile";
+
+    fetch(url,signMethod)
+    .then(response => response.text())
+    .then(result => {
+      console.log(result)
+
+      if(result.status === "success"){
+          Swal.fire({
+            icon: 'success',
+            text: `${result.message}`,
+            confirmButtonColor: '#2D85DE'
+        })
+        setTimeout(() => {
+          localStorage.clear();
+          location.href ="index.html"
+        }, 3000)
+      }
+
+      else{
+        Swal.fire({
+          icon: 'info',
+          text: `${result.message}`,
+          confirmButtonColor: '#2D85DE'
+        })
+        getSpin.style.display = "none"
+      }
+    })
+    .catch(error => console.log('error', error));
+
+  }
+
+}
+
+
+function upDatePassword(event){
+  event.preventDefault();
+
+  const getSpin = document.querySelector(".spin2")
+  getSpin.style.display = "inline-block";
+
+  const currentEmail = document.getElementById("updatePassEmail").value;
+  const newPass = document.getElementById("updatePassword").value;
+  const newConfirmPassword = document.getElementById("confirmPassword").value;
+
+  if(currentEmail === "" || newPass === "" || newConfirmPassword === ""){
+    Swal.fire({
+      icon: "info",
+      text: "All Fields are Required!",
+      confirmButtonColor: "#2D85DE"
+    })
+    getSpin.style.display = "none";
+  }
+
+  if (newConfirmPassword !== newPass) {
+    Swal.fire({
+        icon: 'info',
+        text: 'New password do not match',
+        confirmButtonColor: '#2D85DE'
+    })
+    getSpin.style.display = "none";
+}
+
+  else{
+    const getToken = localStorage.getItem("admin");
+    const myToken = JSON.parse(getToken);
+    const token = myToken.token;
+
+    const dashHeader = new Headers();
+    dashHeader.append("Authorization",`Bearer ${token}`);
+
+    const signData = new FormData();
+    signData.append("email", currentEmail);
+    signData.append("password", newPass);
+    signData.append("password_confirmation", newConfirmPassword);
+
+
+    const signMethod = {
+      method: "POST",
+      headers: dashHeader,
+      body: signData,
+    }
+
+    const url = "https://pluralcodesandbox.com/yorubalearning/api/admin/admin_update_password";
+
+    fetch(url, signMethod)
+
+    .then(response => response.json())
+    .then(result => {
+        console.log(result)
+        if (result.status === "success") {
+            Swal.fire({
+                icon: 'success',
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+            setTimeout(() => {
+                localStorage.clear();
+                location.href = "index.html"
+            }, 3000)
+        }
+        else {
+            Swal.fire({
+                icon: 'info',
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+            getSpin.style.display = "none";
+        }
+    })
+    .catch(error => console.log('error', error));
+    
+  }
+
+}
+
+
+
+function logout() {
+  localStorage.clear();
+  location.href = "index.html";
+}
+ 
