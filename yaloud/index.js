@@ -1001,6 +1001,399 @@ function upDatePassword(event){
 }
 
 
+function displayLearnModal() {
+  const getModal = document.getElementById("my-modal");
+  getModal.style.display = 'block';
+
+}
+
+function  closeModal2() {
+  const showModal = document.getElementById("my-modal");
+  showModal.style.display = "none" 
+}
+
+function reading() {
+  const getDefault = document.querySelector(".myDefault");
+  const getReading = document.querySelector(".myReading");
+  const getCoversation = document.querySelector(".myConversation");
+
+  const mydefault = document.querySelector(".default");
+  const reading = document.querySelector(".reading");
+  const conversation = document.querySelector(".conversation");
+
+  
+
+  getDefault.style.display = "none";
+  getCoversation.style.display = "none";
+  getReading.style.display = "block";
+
+  mydefault.style.backgroundColor = "#fff";
+  mydefault.style.border = "1px solid #2D85DE";
+  mydefault.style.color = "#2D85DE";
+
+  conversation.style.backgroundColor = "#fff";
+  conversation.style.border = "1px solid #2D85DE";
+  conversation.style.color = "#2D85DE";
+
+  reading.style.backgroundColor = "#2D85DE";
+  reading.style.color = "#fff";
+
+}
+
+function conversation() {
+  const getDefault = document.querySelector(".myDefault");
+  const getReading = document.querySelector(".myReading");
+  const getCoversation = document.querySelector(".myConversation");
+
+  const mydefault = document.querySelector(".default");
+  const reading = document.querySelector(".reading");
+  const conversation = document.querySelector(".conversation");
+
+  
+
+  getDefault.style.display = "none";
+  getCoversation.style.display = "block";
+  getReading.style.display = "none";
+
+  mydefault.style.backgroundColor = "#fff";
+  mydefault.style.border = "1px solid #2D85DE";
+  mydefault.style.color = "#2D85DE";
+
+  reading.style.backgroundColor = "#fff";
+  reading.style.color = "#2D85DE";
+  reading.style.border = "1px solid #2D85DE";
+
+
+  conversation.style.color = "#fff";
+  conversation.style.backgroundColor = "#2D85DE";
+
+}
+
+function defaultLearning() {
+  const getDefault = document.querySelector(".myDefault");
+  const getReading = document.querySelector(".myReading");
+  const getCoversation = document.querySelector(".myConversation");
+
+  const mydefault = document.querySelector(".default");
+  const reading = document.querySelector(".reading");
+  const conversation = document.querySelector(".conversation");
+
+  
+
+  getDefault.style.display = "block";
+  getCoversation.style.display = "none";
+  getReading.style.display = "none";
+
+  conversation.style.backgroundColor = "#fff";
+  conversation.style.border = "1px solid #2D85DE";
+  conversation.style.color = "#2D85DE";
+
+  reading.style.backgroundColor = "#fff";
+  reading.style.color = "#2D85DE";
+  reading.style.border = "1px solid #2D85DE";
+
+
+  mydefault.style.color = "#fff";
+  mydefault.style.backgroundColor = "#2D85DE";
+
+}
+
+function categoryDropdown() {
+  const getCategoryDropdown = document.getElementById("nav-list")
+  const getToken = localStorage.getItem("admin");
+    const myToken = JSON.parse(getToken);
+    const token = myToken.token;
+    const dashHeader = new Headers();
+    dashHeader.append("Authorization", `Bearer ${token}`);
+    const dashMethod = {
+        method: 'GET',
+        headers: dashHeader
+    }
+    let data = []
+
+    fetch("https://pluralcodesandbox.com/yorubalearning/api/admin/categorylist_dropdown",dashMethod)
+  .then(response => response.json())
+  .then(result => {
+    console.log(result)
+
+    if(result.length === 0) {
+      getCategoryDropdown.innerText = `
+      No Category Found
+      `
+    }
+
+    else{
+      result.map((item)=>{
+        data += `<h5>${item.parent_category.name}</h5>`
+        item.sub_category.map((subItem)=>{
+          data += `<p onclick="getSubId(${subItem.id})">${subItem.name}</p> <hr> `
+        }) 
+      })
+    }
+    getCategoryDropdown.innerHTML = data
+
+  })
+  .catch(error => console.log('error', error));
+
+
+}
+
+function getSubId (subId){
+    Swal.fire({
+      icon: "success",
+      text: "Subcategory id selected",
+      confirmButtonColor: "#2D85DE"
+  })
+
+  const getSubId = localStorage.setItem("matId",subId)
+  const getMatId = localStorage.getItem("matId")
+
+}
+
+function createDefaultLearning(event) {
+  event.preventDefault();
+
+  const getSpin = document.querySelector(".spin");
+  getSpin.style.display = "inline-block";
+
+  const getTitle = document.getElementById("title").value;
+  const getImage = document.getElementById("img1").files[0];
+  const getAudio = document.getElementById("audio").files[0];
+
+    if(getTitle === "" || getImage === "" || getAudio === "" ){
+      Swal.fire({
+          icon: "info",
+          text: "All Fields are Required!",
+          confirmButtonColor: "#2D85DE"
+      })
+      getSpin.style.display = "none";
+    }
+
+    else{
+
+       const getToken = localStorage.getItem("admin");
+       const myToken = JSON.parse(getToken);
+       const token = myToken.token;
+
+        dashHeader = new Headers();
+        dashHeader.append ("Authorization",`Bearer ${token}`);
+
+        const getMatId = localStorage.getItem("matId")
+
+        const catData = new FormData();
+        catData.append("title", getTitle);
+        catData.append("image", getImage);
+        catData.append("audio", getAudio);
+        catData.append("subcategory_id", getMatId)
+
+        const dashMethod = {
+          method: 'POST',
+          headers: dashHeader,
+          body: catData
+        };
+
+        const url = "https://pluralcodesandbox.com/yorubalearning/api/admin/create_defaultlearning";
+
+        fetch (url, dashMethod)
+
+        .then(response => response.json())
+        .then(result => {
+          console.log(result)
+
+          if(result.status === "success"){
+
+            Swal.fire({
+                icon: 'success',
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+            setTimeout(()=>{
+              location.reload();
+            },3000)
+          }
+
+          else{
+            Swal.fire({
+                icon: 'info',
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+          }
+
+        })
+        .catch(error => console.log('error', error));
+
+        
+
+    }
+
+}
+
+function createReadingMat(event){
+  event.preventDefault();
+
+  const getSpin = document.querySelector(".spin2");
+  getSpin.style.display = "inline-block";
+
+  const engText = document.getElementById("englishText").value;
+  const youText = document.getElementById("yorubaText").value;
+  const getImage = document.getElementById("img2").files[0];
+  const getAudio = document.getElementById("audio2").files[0];
+
+  if(engText === "" || youText === "" ||  getImage === "" || getAudio === "" ){
+
+        Swal.fire({
+          icon: "info",
+          text: "All Fields are Required!",
+          confirmButtonColor: "#2D85DE"
+      })
+      getSpin.style.display = "none";
+    }
+
+    else{
+      const getToken = localStorage.getItem("admin");
+      const myToken = JSON.parse(getToken);
+      const token = myToken.token;
+
+      const getMatId = localStorage.getItem("matId")
+
+      dashHeader = new Headers();
+        dashHeader.append ("Authorization",`Bearer ${token}`);
+
+        const catData = new FormData();
+        catData.append("words_in_english", engText);
+        catData.append("words_in_yoruba", youText);
+        catData.append("image", getImage);
+        catData.append("audio", getAudio);
+        catData.append("subcategory_id", getMatId)
+
+        const dashMethod = {
+          method: 'POST',
+          headers: dashHeader,
+          body: catData
+        };
+        const url = "https://pluralcodesandbox.com/yorubalearning/api/admin/create_readingmaterial";
+
+        fetch(url, dashMethod)
+
+        .then(response => response.json())
+        .then(result => {
+          console.log(result)
+          
+          if(result.status === "success"){
+
+            Swal.fire({
+                icon: 'success',
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+            setTimeout(()=>{
+              location.reload();
+            },3000)
+          }
+
+          else{
+            Swal.fire({
+                icon: 'info',
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+          }
+        })
+        .catch(error => console.log('error', error));
+    }
+
+}
+
+
+
+function createConversation(event){
+  event.preventDefault();
+
+  const getSpin = document.querySelector(".spin1");
+  getSpin.style.display = "inline-block";
+
+  const engQue = document.getElementById("englishQues").value;
+  const youQue = document.getElementById("yorubaQues").value;
+  const engAns = document.getElementById("englishAns").value;
+  const youAns = document.getElementById("yorubaAns").value;
+  const getAudio3 = document.getElementById("audio3").files[0];
+  const getAudio4 = document.getElementById("audio4").files[0];
+  const getImage3 = document.getElementById("img3").files[0];
+
+  if(engQue === "" || youQue === "" ||  engAns === "" || youAns === "" || getAudio3 === ""|| getAudio4 === "" || getImage3 === ""){
+
+        Swal.fire({
+          icon: "info",
+          text: "All Fields are Required!",
+          confirmButtonColor: "#2D85DE"
+      })
+      getSpin.style.display = "none";
+  }
+  else{
+    const getToken = localStorage.getItem("admin");
+    const myToken = JSON.parse(getToken);
+    const token = myToken.token;
+
+    dashHeader = new Headers()
+    dashHeader.append("Authorization",`Bearer ${token}`);
+
+    const getMatId = localStorage.getItem("matId")
+
+       const catData = new FormData();
+        catData.append("conversation_english_question", engQue);
+        catData.append("conversation_yoruba_question", youQue);
+        catData.append("conversation_english_answer", engAns);
+        catData.append("conversation_yoruba_answer", youAns);
+        catData.append("conversation_audio_question_inyoruba", getAudio3);
+        catData.append("conversation_audio_answer_inyoruba", getAudio4);
+        catData.append("image", getImage3);
+        catData.append("subcategory_id", getMatId)
+    
+
+        const dashMethod = {
+          method: 'POST',
+          headers: dashHeader,
+          body: catData
+        };
+
+        const url = "https://pluralcodesandbox.com/yorubalearning/api/admin/create_learningconversation";
+
+
+        fetch(url, dashMethod)
+
+        .then(response => response.json())
+        .then(result => {
+          console.log(result)
+          
+          if(result.status === "success"){
+
+            Swal.fire({
+                icon: 'success',
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+            setTimeout(()=>{
+              location.reload();
+            },3000)
+          }
+
+          else{
+            Swal.fire({
+                icon: 'info',
+                text: `${result.message}`,
+                confirmButtonColor: '#2D85DE'
+            })
+          }
+        })
+        .catch(error => console.log('error', error));
+    
+
+
+  }
+
+
+}
 
 function logout() {
   localStorage.clear();
